@@ -18,14 +18,14 @@ interface Props {
 const PokemonPage: NextPage<Props> = ({ pokemon }) => {
 
   const [isInFavorites, setIsInFavorites] = useState(localStorageFavorites.existInFavorites(pokemon.id));
-  
+
   const onToggleFavorite = () => {
     localStorageFavorites.toggleFavorite(pokemon.id);
     setIsInFavorites(!isInFavorites);
 
-    if(!isInFavorites) {
+    if (!isInFavorites) {
       conffeti({
-        zIndex:999,
+        zIndex: 999,
         particleCount: 1000,
         spread: 160,
         angle: -100,
@@ -57,10 +57,10 @@ const PokemonPage: NextPage<Props> = ({ pokemon }) => {
               <Text h1 transform="capitalize">{pokemon.name}</Text>
               <Button
                 color="gradient"
-                ghost={ !isInFavorites }
+                ghost={!isInFavorites}
                 onClick={onToggleFavorite}
               >
-                { isInFavorites ? 'En Favoritos' : 'Guardar en Favoritos' }
+                {isInFavorites ? 'En Favoritos' : 'Guardar en Favoritos'}
               </Button>
             </Card.Header>
             <Card.Body>
@@ -101,21 +101,31 @@ const PokemonPage: NextPage<Props> = ({ pokemon }) => {
 }
 
 export const getStaticPaths: GetStaticPaths = async (ctx) => {
-  const pokemons151 = [...Array(151)].map((value, index) => `${index + 1}`);
+  const pokemons151 = [...Array(151)].map( ( value, index ) => `${ index + 1 }` );
   return {
-    paths: pokemons151.map(id => ({
+    paths: pokemons151.map( id => ({
       params: { id }
     })),
-    fallback: false
+    fallback: 'blocking'
   }
 }
 
 export const getStaticProps: GetStaticProps = async ({ params }) => {
   const { id } = params as { id: string };
+  const pokemon = await getPokemonInfo(id);
+  if (!pokemon) {
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false
+      }
+    }
+  }
   return {
     props: {
-      pokemon: await getPokemonInfo(id)
-    }
+      pokemon
+    },
+    revalidate: 86400,
   }
 }
 
